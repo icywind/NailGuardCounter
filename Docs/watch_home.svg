@@ -1,0 +1,8 @@
+<svg width="198" height="242" viewBox="0 0 198 242" xmlns="http://www.w3.org/2000/svg">
+  <rect width="198" height="242" rx="24" fill="#000000"/>
+  <text x="99" y="40" fill="#AAAAAA" font-size="12" text-anchor="middle" font-family="SF Pro, Arial">TODAY</text>
+  <text x="99" y="100" fill="#FFFFFF" font-size="42" text-anchor="middle" font-family="SF Pro Rounded, Arial">3</text>
+  <text x="99" y="140" fill="#AAAAAA" font-size="11" text-anchor="middle" font-family="SF Pro, Arial">STREAK: 2 DAYS</text>
+  <rect x="24" y="170" width="150" height="40" rx="16" fill="#0A84FF"/>
+  <text x="99" y="198" fill="#FFFFFF" font-size="14" text-anchor="middle" font-family="SF Pro, Arial">+ LOG BITE</text>
+</svg>

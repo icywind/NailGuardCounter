@@ -1,11 +1,5 @@
-//
-//  NailGuardApp.swift
-//  NailGuard
-//
-//  Created by Rick Cheng on 2/3/26.
-//
-
 import SwiftUI
+import SwiftData
 
 @main
 struct NailGuardApp: App {
@@ -13,5 +7,42 @@ struct NailGuardApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(PersistenceController.shared.container)
+    }
+}
+
+struct ContentView: View {
+    var body: some View {
+        TabView {
+            NavigationView {
+                DashboardView()
+            }
+            .tabItem {
+                Label("Dashboard", systemImage: "chart.bar.fill")
+            }
+            
+            NavigationView {
+                TrendsView()
+            }
+            .tabItem {
+                Label("Trends", systemImage: "chart.line.uptrend.xyaxis")
+            }
+            
+            NavigationView {
+                SettingsView()
+            }
+            .tabItem {
+                Label("Settings", systemImage: "gearshape.fill")
+            }
+        }.onAppear() {
+    PersistenceController.shared.populateTestData(daysBack: 60, deleteFirst: true)
+        }
+    }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+            .modelContainer(for: BiteEventModel.self, inMemory: true)
     }
 }
