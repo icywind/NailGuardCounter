@@ -139,6 +139,7 @@ struct TrendsView: View {
                                 .font(.caption)
                                 .padding(4)
                                 .background(Color.yellow)
+                                .foregroundColor(Color(.secondarySystemBackground))
                                 .cornerRadius(4)
                     }
                 }
@@ -211,7 +212,7 @@ struct TrendsView: View {
             StatCard(
                 title: "Avg/Day",
                 value: String(format: "%.1f", averagePerDay),
-                icon: "arrow.down.forward",
+                icon: "waveform.path.ecg",
                 color: .orange
             )
         }
@@ -831,7 +832,7 @@ struct CalendarDayCell: View {
             if count > 0 {
                 Text("\(count)")
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color(.secondarySystemBackground))
                     .frame(width: 20, height: 20)
                     .background(colorForCount(count))
                     .clipShape(Circle())
