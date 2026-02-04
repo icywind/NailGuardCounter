@@ -3,6 +3,9 @@ import SwiftData
 
 @main
 struct NailGuardApp: App {
+    init() {
+        _ = PhoneSyncManager.shared
+    }
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -45,5 +48,6 @@ struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
             .modelContainer(for: BiteEventModel.self, inMemory: true)
+        
     }
 }

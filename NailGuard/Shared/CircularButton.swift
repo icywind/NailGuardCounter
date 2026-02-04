@@ -22,11 +22,9 @@ struct CircularButton: View {
                     backgroundColor,
                     lineWidth: 12
                 )
-                .frame(width: 180, height: 180)
                 .overlay(
                     Circle()
                         .fill(centerColor)
-                        .frame(width: 150, height: 150)
                         .overlay(
                             Text("+1")
                                 .foregroundColor(.white)
@@ -34,8 +32,10 @@ struct CircularButton: View {
                                 .font(.system(size: 38, weight: .bold, design: .rounded))
                         )
                 )
-                .shadow(color: .pink.opacity(0.3), radius: 10, x: 0, y: 5)
+                //.shadow(color: .pink.opacity(0.3), radius: 10, x: 0, y: 5)
         }
+        .aspectRatio(1.0, contentMode: .fit)
+        .padding()
         .scaleEffect(isPressed ? 0.9 : 1.0)
         .animation(.spring(response: 0.3), value: isPressed)
     }
