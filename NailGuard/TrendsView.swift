@@ -10,6 +10,7 @@ struct TrendsView: View {
     @State private var dailyData: [DailyBiteData] = []
     @State private var showingInsights = false
     @State private var calendarData: [Date: Int] = [:]
+    @State private var selectedMonth: Date? = nil
     
     var body: some View {
         ScrollView {
@@ -46,6 +47,10 @@ struct TrendsView: View {
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
             updateDataForTimeRange(selectedTimeRange)
+            // Initialize selectedMonth to current month when in month view
+            if selectedTimeRange == .month {
+                selectedMonth = Calendar.current.startOfDay(for: Date())
+            }
         }
     }
     
@@ -62,13 +67,34 @@ struct TrendsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     
+    private var periodName: String {
+        
+        switch selectedTimeRange {
+        case .week:
+            return "week"
+            
+        case .month:
+            if let selectedMonth = selectedMonth {
+                // Format month name
+                let formatter = DateFormatter()
+                formatter.dateFormat = "MMMM"
+                return formatter.string(from: selectedMonth)
+            } else {
+                return "month"
+            }
+            
+        case .year:
+            return "year"
+        }
+    }
+    
     private var summaryText: String {
         guard !dailyData.isEmpty else {
             return "Loading data..."
         }
-        let total = dailyData.reduce(0) { $0 + $1.count }
-        let average = total / dailyData.count
-        return "Avg \(average) bites per day this \(selectedTimeRange.rawValue.lowercased())"
+        
+        let average = averagePerDay
+        return String(format: "Avg %.1f bites per day this %@", average, periodName)
     }
     
     // MARK: - Time Range Picker
@@ -82,6 +108,10 @@ struct TrendsView: View {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         selectedTimeRange = range
                         updateDataForTimeRange(range)
+                        // Initialize selectedMonth to current month when switching to month view
+                        if range == .month {
+                            selectedMonth = Calendar.current.startOfDay(for: Date())
+                        }
                     }
                 }
             }
@@ -147,7 +177,11 @@ struct TrendsView: View {
             Text("Monthly Calendar")
                 .font(.system(size: 17, weight: .semibold))
             
-            CalendarGridView(biteCountByDate: calendarData)
+            CalendarGridView(
+                biteCountByDate: calendarData,
+                selectedMonth: $selectedMonth,
+                onMonthChanged: { updateDataForSelectedMonth($0) }
+            )
         }
         .padding(16)
         .background(Color.white)
@@ -238,58 +272,81 @@ struct TrendsView: View {
     }
     
     private var averagePerDay: Double {
+        guard !dailyData.isEmpty else {
+            return 0
+        }
+        
         let calendar = Calendar.current
         let now = Date()
         
+        let validDays: Int
+        let total: Double
+        let earliestDataDate = dailyData.map { $0.date }.min()
+
         switch selectedTimeRange {
         case .week:
-            // For week view, we have exactly 7 days
-            return Double(totalBites) / 7.0
+            // Valid days = 7 (always the last 7 days including today)
+            validDays = 7
+            total = Double(totalBites)
+            
         case .month:
-            // For month view, check if it's the current month
-            let currentMonth = calendar.component(.month, from: now)
-            let currentYear = calendar.component(.year, from: now)
-            let selectedMonth = calendar.component(.month, from: dailyData.first?.date ?? now)
-            let selectedYear = calendar.component(.year, from: dailyData.first?.date ?? now)
-            let totalBitesInPeriod = totalBites
-            
-            if currentMonth == selectedMonth && currentYear == selectedYear {
-                // Current month - average up to today's date
-                let daysElapsed = calendar.component(.day, from: now)
-                return daysElapsed > 0 ? Double(totalBites) / Double(daysElapsed) : 0
-            } else {
-                // Past month - use full month length
-                if let monthInterval = calendar.dateInterval(of: .month, for: dailyData.first?.date ?? now) {
-                    let daysInMonth = calendar.dateComponents([.day], from: monthInterval.start, to: monthInterval.end).day ?? 30
-                    return Double(totalBitesInPeriod) / Double(daysInMonth)
+            if let selectedMonth = selectedMonth {
+                let actualStart : Date
+                let startOfMonth = calendar.dateInterval(of: .month, for: selectedMonth)!.start
+                let endOfMonth   = calendar.dateInterval(of: .month, for: selectedMonth)!.end
+                
+                if let earliest = earliestDataDate, earliest > startOfMonth {
+                    actualStart = earliest
                 } else {
-                    return Double(totalBitesInPeriod) / 30.0
+                    actualStart = startOfMonth
                 }
-            }
-        case .year:
-            // For year view, check if it's the current year
-            let currentYear = calendar.component(.year, from: now)
-            let selectedYear = calendar.component(.year, from: dailyData.first?.date ?? now)
-            
-            if currentYear == selectedYear {
-                // Current year - average up to today's date
-                let dayOfYear = calendar.ordinality(of: .day, in: .year, for: now) ?? 1
-                return Double(totalBites) / Double(dayOfYear)
+                
+                let actualEnd = min(now, endOfMonth)
+                
+                let days = calendar.dateComponents([.day], from: actualStart, to: actualEnd).day ?? 0
+                validDays = (actualEnd == endOfMonth) ? days : days + 1
+                total = Double(dailyData
+                    .filter { $0.date >= actualStart && $0.date <= actualEnd }
+                    .reduce(0) { $0 + $1.count })
             } else {
-                // Past year - use full year length
-                let checkDate = dailyData.first?.date ?? now
-                let daysInYear = isLeapYear(date: checkDate) ? 366.0 : 365.0
-                return Double(totalBites) / daysInYear
+                validDays = 1
+                total = 0
             }
+            
+        case .year:
+            // Start of period (one year ago)
+            guard let oneYearAgo = calendar.date(byAdding: .year, value: -1, to: now) else {
+                validDays = 365
+                total = Double(totalBites)
+                break
+            }
+            
+            // Actual start = later of (one year ago OR earliest data)
+            let earliestDataDate = dailyData.map { $0.date }.min()
+            let actualStart: Date
+            if let earliest = earliestDataDate, earliest > oneYearAgo {
+                actualStart = earliest
+            } else {
+                actualStart = oneYearAgo
+            }
+            
+            // Valid days = days from actual start to today (inclusive)
+            let days = calendar.dateComponents([.day], from: actualStart, to: now).day ?? 0
+            validDays = days + 1
+            
+            // Calculate total for the current period
+            total = Double(dailyData
+                .filter { $0.date >= actualStart && $0.date <= now }
+                .reduce(0) { $0 + $1.count })
         }
+        
+        guard validDays > 0 else {
+            return 0
+        }
+        
+        return total / Double(validDays)
     }
-    func isLeapYear(date: Date) -> Bool {
-        let calendar = Calendar.current
-
-        let components = calendar.dateComponents([.year], from: date)
-        let year = components.year ?? 0
-        return (year % 400 == 0) || (year % 4 == 0 && year % 100 != 0)
-    }
+    
     private var insights: [Insight] {
         var results: [Insight] = []
         
@@ -324,7 +381,7 @@ struct TrendsView: View {
             ))
         }
         
-        // Best day
+        // Best day (TODO: change for correct best day for Yearly view)
         if let minDay = dailyData.min(by: { $0.count < $1.count }) {
             let formatter = DateFormatter()
             formatter.dateFormat = "EEEE"
@@ -370,7 +427,7 @@ struct TrendsView: View {
         
         switch range {
         case .week:
-            startDate = calendar.date(byAdding: .day, value: -6, to: now)!
+            startDate = calendar.date(byAdding: .day, value: -7, to: now)!
         case .month:
             startDate = calendar.date(byAdding: .day, value: -29, to: now)!
         case .year:
@@ -459,6 +516,30 @@ struct TrendsView: View {
     
     private func updateDataForTimeRange(_ range: TimeRange) {
         loadDataForTimeRange(range)
+    }
+    
+    private func updateDataForSelectedMonth(_ month: Date) {
+        let calendar = Calendar.current
+        
+        // Get the month interval for the selected month
+        guard let monthInterval = calendar.dateInterval(of: .month, for: month) else {
+            return
+        }
+        
+        // Filter events for the selected month
+        let filteredEvents = biteEvents.filter { $0.timestamp >= monthInterval.start && $0.timestamp < monthInterval.end }
+        
+        // Create daily data for the selected month
+        let grouped = Dictionary(grouping: filteredEvents) { event in
+            calendar.startOfDay(for: event.timestamp)
+        }
+        
+        dailyData = grouped.map { date, events in
+            DailyBiteData(date: date, count: events.count)
+        }.sorted { $0.date < $1.date }
+        
+        // Update calendar data to show the selected month
+        calendarData = grouped.mapValues { $0.count }
     }
 }
 
@@ -587,6 +668,8 @@ struct HourlyHeatmap: View {
 
 struct CalendarGridView: View {
     let biteCountByDate: [Date: Int]
+    @Binding var selectedMonth: Date?
+    let onMonthChanged: (Date) -> Void
     @State private var currentMonth = Date()
     
     private let calendar = Calendar.current
@@ -716,12 +799,16 @@ struct CalendarGridView: View {
     private func previousMonth() {
         if let newMonth = calendar.date(byAdding: .month, value: -1, to: currentMonth) {
             currentMonth = newMonth
+            selectedMonth = currentMonth
+            onMonthChanged(currentMonth)
         }
     }
     
     private func nextMonth() {
         if let newMonth = calendar.date(byAdding: .month, value: 1, to: currentMonth) {
             currentMonth = newMonth
+            selectedMonth = currentMonth
+            onMonthChanged(currentMonth)
         }
     }
 }
