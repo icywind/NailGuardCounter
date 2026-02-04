@@ -55,7 +55,7 @@ struct DashboardView: View {
                             print("Tapped, todayCount: \(todayCount) add 1")
                             PersistenceController.shared.addBite()
                         },
-                        backgroundColor: .blue, centerColor: Color.pink.opacity(0.3)
+                        backgroundColor: .blue, centerColor: Color.pink.opacity(0.7)
                     )
                 }
                 
@@ -66,13 +66,14 @@ struct DashboardView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("This Week")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.black)
+                        .foregroundColor(Color(UIColor.systemGray))
                         .padding(.horizontal, 24)
                     
                     // Bar Chart
+                    let maxCount = weekData.max() ?? 1
                     HStack(alignment: .bottom, spacing: 20) {
                         ForEach(0..<weekData.count, id: \.self) { index in
-                            BarView(height: CGFloat(weekData[index]))
+                            BarView(height: CGFloat(weekData[index]), maxHeight: CGFloat(maxCount))
                         }
                     }
                     .padding(.horizontal, 40)
@@ -81,6 +82,7 @@ struct DashboardView: View {
                 
                 Spacer()
             }
+            .background(Color(.systemBackground))
         }
         .onAppear {
             updateDashboardData()
@@ -115,11 +117,15 @@ struct DashboardView: View {
 
 struct BarView: View {
     let height: CGFloat
+    let maxHeight: CGFloat
     
     var body: some View {
+        // Scale the height to fit within a chart that's 2x the max height
+        let scaledHeight = maxHeight > 0 ? (height / maxHeight) * 100 : 0
+        
         Rectangle()
             .fill(Color(red: 10/255, green: 132/255, blue: 255/255))
-            .frame(width: 20, height: height)
+            .frame(width: 20, height: scaledHeight)
             .cornerRadius(2)
     }
 }

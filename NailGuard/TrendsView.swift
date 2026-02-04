@@ -42,7 +42,8 @@ struct TrendsView: View {
             .padding(.horizontal, 20)
             .padding(.top, 20)
         }
-        .background(Color(red: 242/255, green: 242/255, blue: 247/255))
+        //.background(Color(red: 242/255, green: 242/255, blue: 247/255))
+        .background(Color(.systemBackground))
         .navigationTitle("Trends")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
@@ -166,9 +167,9 @@ struct TrendsView: View {
             }
         }
         .padding(16)
-        .background(Color.white)
+        .background(Color(UIColor.systemBackground))
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .shadow(color: Color(UIColor.systemGray).opacity(0.3), radius: 8, x: 0, y: 2)
     }
     
     // MARK: - Calendar Section
@@ -184,9 +185,9 @@ struct TrendsView: View {
             )
         }
         .padding(16)
-        .background(Color.white)
+        .background(Color(UIColor.systemBackground))
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .shadow(color: Color(UIColor.systemGray).opacity(0.3), radius: 8, x: 0, y: 2)
     }
     
     // MARK: - Statistics Section
@@ -243,9 +244,9 @@ struct TrendsView: View {
             }
         }
         .padding(16)
-        .background(Color.white)
+        .background(Color(UIColor.systemBackground))
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .shadow(color: Color(UIColor.systemGray).opacity(0.3), radius: 8, x: 0, y: 2)
     }
     
     // MARK: - Hourly Pattern Section
@@ -257,9 +258,9 @@ struct TrendsView: View {
             HourlyHeatmap(data: hourlyPatternData)
         }
         .padding(16)
-        .background(Color.white)
+        .background(Color(UIColor.systemBackground))
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .shadow(color: Color(UIColor.systemGray).opacity(0.3), radius: 8, x: 0, y: 2)
     }
     
     // MARK: - Computed Properties
@@ -584,9 +585,9 @@ struct StatCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(Color.white)
+        .background(Color(UIColor.systemBackground))
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .shadow(color: Color(UIColor.systemGray).opacity(0.3), radius: 8, x: 0, y: 2)
     }
 }
 

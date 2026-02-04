@@ -6,6 +6,7 @@ struct NailGuardApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .preferredColorScheme(.none) // Allow system to control color scheme
         }
         .modelContainer(PersistenceController.shared.container)
     }
