@@ -10,6 +10,7 @@ struct CircularButton: View {
     let action: () -> Void
     let backgroundColor: Color
     let centerColor: Color
+    let frameSize: Float
     
     @State private var isPressed: Bool = false
 
@@ -20,7 +21,7 @@ struct CircularButton: View {
             Circle()
                 .stroke(
                     backgroundColor,
-                    lineWidth: 12
+                    lineWidth: 20
                 )
                 .overlay(
                     Circle()
@@ -32,14 +33,14 @@ struct CircularButton: View {
                                 .font(.system(size: 38, weight: .bold, design: .rounded))
                         )
                 )
-                //.shadow(color: .pink.opacity(0.3), radius: 10, x: 0, y: 5)
         }
-        .aspectRatio(1.0, contentMode: .fit)
+        .frame(maxWidth:CGFloat(frameSize))
         .padding()
+        .scaledToFill()
         .scaleEffect(isPressed ? 0.9 : 1.0)
         .animation(.spring(response: 0.3), value: isPressed)
     }
 }
 #Preview {
-    CircularButton(action: {print("Tapped button")}, backgroundColor: .blue, centerColor: .red)
+    CircularButton(action: {print("Tapped button")}, backgroundColor: .blue, centerColor: .red, frameSize: 200)
 }

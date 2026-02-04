@@ -55,7 +55,8 @@ struct DashboardView: View {
                             print("Tapped, todayCount: \(todayCount) add 1")
                             PersistenceController.shared.addBite()
                         },
-                        backgroundColor: .blue, centerColor: Color.pink.opacity(0.7)
+                        backgroundColor: .blue, centerColor: Color.pink.opacity(0.7),
+                                   frameSize: 200
                     )
                 }
                 

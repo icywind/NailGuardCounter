@@ -20,30 +20,19 @@ struct WatchHomeView: View {
 
     var body: some View {
         ZStack {
-            // Date display in top-left corner
-            VStack {
-                HStack {
-                    Text(dateFormatter.string(from: currentDate))
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                }
-                Spacer()
-            }
-            .padding()
-            
             // Main content
-            VStack(spacing: 12) {
+            VStack(spacing: 2) {
                 Spacer()
-                Text("TODAY's BITES")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
+                Text("Today: "+dateFormatter.string(from: currentDate))
+                    .font(.caption)
+                    //.foregroundStyle(.secondary)
 
                 Text("\(todayCount)")
                     .font(.system(size: 42, weight: .bold))
                 
                 CircularButton(action: logBite,
-                               backgroundColor: .blue, centerColor: .red)
+                               backgroundColor: .blue, centerColor: .red, frameSize: 100)
+                Spacer()
             }
             .padding()
         }
@@ -69,6 +58,6 @@ struct WatchHomeView: View {
 
 }
 
-#Preview("Watch Preview", traits: .sizeThatFitsLayout) {
+#Preview("Watch Preview", traits: .defaultLayout) {
     WatchHomeView()
 }
