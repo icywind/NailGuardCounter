@@ -75,7 +75,7 @@ final class PersistenceController {
             (1.8, 15, 10),   // high-stress / binge days
         ]
         
-        for dayOffset in 0..<daysBack {
+        for dayOffset in 1..<daysBack {
             guard let day = calendar.date(byAdding: .day, value: -dayOffset, to: now) else { continue }
             
             let isWeekend = calendar.component(.weekday, from: day) == 1 || calendar.component(.weekday, from: day) == 7

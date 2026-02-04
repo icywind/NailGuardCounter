@@ -45,7 +45,7 @@ struct TrendsView: View {
         .navigationTitle("Trends")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
-            print("biteevent has \(biteEvents.count) items" )
+            updateDataForTimeRange(selectedTimeRange)
         }
     }
     
@@ -97,18 +97,34 @@ struct TrendsView: View {
             Chart {
                 ForEach(dailyData) { data in
                     BarMark(
-                        x: .value("Day", data.date, unit: .day),
+                        x: .value("Day", data.date, unit: selectedTimeRange == .year ? .month : .day),
                         y: .value("Count", data.count)
                     )
                     .foregroundStyle(Color(red: 10/255, green: 132/255, blue: 255/255))
                     .cornerRadius(4)
+                    // Add annotation to this specific mark
+                    .annotation(position: .top) {
+                        Text("\(data.count)")
+                                .font(.caption)
+                                .padding(4)
+                                .background(Color.yellow)
+                                .cornerRadius(4)
+                    }
                 }
             }
             .frame(height: 200)
             .chartXAxis {
-                AxisMarks(values: .stride(by: .day)) { _ in
-                    AxisValueLabel(format: .dateTime.weekday(.abbreviated))
-                        .font(.system(size: 12))
+                if selectedTimeRange == .year {
+                    AxisMarks(values: .automatic) { _ in
+                        AxisValueLabel(format: .dateTime.month(.abbreviated), centered: true)
+                            .font(.system(size: 12))
+                        
+                    }
+                } else {
+                    AxisMarks(values: .stride(by: .day)) { _ in
+                        AxisValueLabel(format: .dateTime.weekday(.abbreviated), centered: true)
+                            .font(.system(size: 12))
+                    }
                 }
             }
             .chartYAxis {
@@ -141,6 +157,7 @@ struct TrendsView: View {
     
     // MARK: - Statistics Section
     private var statisticsSection: some View {
+        
         HStack(spacing: 12) {
             StatCard(
                 title: "Total",
@@ -221,9 +238,58 @@ struct TrendsView: View {
     }
     
     private var averagePerDay: Double {
-        Double(totalBites) / Double(dailyData.count)
+        let calendar = Calendar.current
+        let now = Date()
+        
+        switch selectedTimeRange {
+        case .week:
+            // For week view, we have exactly 7 days
+            return Double(totalBites) / 7.0
+        case .month:
+            // For month view, check if it's the current month
+            let currentMonth = calendar.component(.month, from: now)
+            let currentYear = calendar.component(.year, from: now)
+            let selectedMonth = calendar.component(.month, from: dailyData.first?.date ?? now)
+            let selectedYear = calendar.component(.year, from: dailyData.first?.date ?? now)
+            let totalBitesInPeriod = totalBites
+            
+            if currentMonth == selectedMonth && currentYear == selectedYear {
+                // Current month - average up to today's date
+                let daysElapsed = calendar.component(.day, from: now)
+                return daysElapsed > 0 ? Double(totalBites) / Double(daysElapsed) : 0
+            } else {
+                // Past month - use full month length
+                if let monthInterval = calendar.dateInterval(of: .month, for: dailyData.first?.date ?? now) {
+                    let daysInMonth = calendar.dateComponents([.day], from: monthInterval.start, to: monthInterval.end).day ?? 30
+                    return Double(totalBitesInPeriod) / Double(daysInMonth)
+                } else {
+                    return Double(totalBitesInPeriod) / 30.0
+                }
+            }
+        case .year:
+            // For year view, check if it's the current year
+            let currentYear = calendar.component(.year, from: now)
+            let selectedYear = calendar.component(.year, from: dailyData.first?.date ?? now)
+            
+            if currentYear == selectedYear {
+                // Current year - average up to today's date
+                let dayOfYear = calendar.ordinality(of: .day, in: .year, for: now) ?? 1
+                return Double(totalBites) / Double(dayOfYear)
+            } else {
+                // Past year - use full year length
+                let checkDate = dailyData.first?.date ?? now
+                let daysInYear = isLeapYear(date: checkDate) ? 366.0 : 365.0
+                return Double(totalBites) / daysInYear
+            }
+        }
     }
-    
+    func isLeapYear(date: Date) -> Bool {
+        let calendar = Calendar.current
+
+        let components = calendar.dateComponents([.year], from: date)
+        let year = components.year ?? 0
+        return (year % 400 == 0) || (year % 4 == 0 && year % 100 != 0)
+    }
     private var insights: [Insight] {
         var results: [Insight] = []
         
@@ -262,6 +328,7 @@ struct TrendsView: View {
         if let minDay = dailyData.min(by: { $0.count < $1.count }) {
             let formatter = DateFormatter()
             formatter.dateFormat = "EEEE"
+            formatter.timeZone = TimeZone.current
             results.append(Insight(
                 icon: "star.fill",
                 title: "Best Day: \(formatter.string(from: minDay.date))",
@@ -326,16 +393,58 @@ struct TrendsView: View {
                 DailyBiteData(date: date, count: events.count)
             }.sorted { $0.date < $1.date }
         } else if range == .year {
-            // For year view, aggregate by week
+            // For year view, aggregate by month for the last 12 months or until we find the earliest month with data
             let grouped = Dictionary(grouping: filteredEvents) { event in
-                calendar.dateInterval(of: .weekOfYear, for: event.timestamp)!.start
+                calendar.dateInterval(of: .month, for: event.timestamp)!.start
             }
             
-            dailyData = grouped.map { date, events in
-                DailyBiteData(date: date, count: events.count)
-            }.sorted { $0.date < $1.date }
+            // Find the earliest month with data
+            let earliestMonthWithEvents = grouped.keys.min()
+            
+            
+            // Get months from now backwards, up to 12 months or until we reach the earliest month with data
+            var monthlyData: [DailyBiteData] = []
+            var monthOffset = 0
+            let maxMonths = 12
+            
+            while monthOffset < maxMonths {
+                if let monthStart = calendar.date(byAdding: .month, value: -monthOffset, to: now) {
+                    // Stop if we've reached the earliest month with data
+                    if let earliestMonth = earliestMonthWithEvents, monthStart < earliestMonth {
+                        break
+                    }
+                    
+                    let monthInterval = calendar.dateInterval(of: .month, for: monthStart)!
+                    let monthEvents = filteredEvents.filter { event in
+                        event.timestamp >= monthInterval.start && event.timestamp < monthInterval.end
+                    }
+                    let count = monthEvents.count
+                    monthlyData.append(DailyBiteData(date: monthInterval.start, count: count))
+                }
+                monthOffset += 1
+            }
+            
+            dailyData = monthlyData.sorted { $0.date < $1.date }
+        } else if range == .week {
+            // For week view, always show the last 7 days
+            var weeklyData: [DailyBiteData] = []
+            
+            // Create data for the last 7 days, including days with zero events
+            for i in 0..<7 {
+                let dayStart = calendar.startOfDay(for: calendar.date(byAdding: .day, value: -i, to: now)!)
+                let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart)!
+                
+                // Count events for this specific day
+                let dayEvents = filteredEvents.filter { event in
+                    event.timestamp >= dayStart && event.timestamp < dayEnd
+                }
+                
+                weeklyData.append(DailyBiteData(date: dayStart, count: dayEvents.count))
+            }
+            
+            dailyData = weeklyData.reversed()
         } else {
-            // For week view, aggregate by day
+            // For other ranges (shouldn't reach here, but kept for safety)
             let grouped = Dictionary(grouping: filteredEvents) { event in
                 calendar.startOfDay(for: event.timestamp)
             }
@@ -343,17 +452,9 @@ struct TrendsView: View {
             dailyData = grouped.map { date, events in
                 DailyBiteData(date: date, count: events.count)
             }.sorted { $0.date < $1.date }
-            
-            // Fill in missing days with zero counts
-            var allDays: [DailyBiteData] = []
-            for i in 0..<7 {
-                let date = calendar.date(byAdding: .day, value: -i, to: now)!
-                let dayStart = calendar.startOfDay(for: date)
-                let count = dailyData.first(where: { calendar.isDate($0.date, inSameDayAs: dayStart) })?.count ?? 0
-                allDays.append(DailyBiteData(date: dayStart, count: count))
-            }
-            dailyData = allDays.reversed()
         }
+        
+        print("biteevent has \(biteEvents.count) items" )
     }
     
     private func updateDataForTimeRange(_ range: TimeRange) {
@@ -754,6 +855,8 @@ struct TrendsView_Previews: PreviewProvider {
             }
             
             try container.mainContext.save()
+            
+            PersistenceController.shared.populateTestData(daysBack: 60, deleteFirst: true)
             return container
         } catch {
             fatalError("Failed to create preview container: \(error)")
