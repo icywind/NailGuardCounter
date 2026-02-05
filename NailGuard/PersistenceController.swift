@@ -59,6 +59,31 @@ final class PersistenceController {
         save()
     }
     
+    /// Get Today's Bites
+    func getTodayBites() -> [BiteEventModel] {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: Date())
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+        
+        // Create predicate
+        let predicate = #Predicate<BiteEventModel> { bite in
+            bite.timestamp >= startOfDay && bite.timestamp < endOfDay
+        }
+        
+        // Create descriptor
+        let descriptor = FetchDescriptor<BiteEventModel>(
+            predicate: predicate,
+            sortBy: [SortDescriptor(\.timestamp)]
+        )
+        
+        // Fetch
+        do {
+            return try context.fetch(descriptor)
+        } catch {
+            print("Failed to fetch today's bites: \(error)")
+            return []
+        }
+    }
     /// Creates ~40–60 days of fake bite events with realistic daily variation
     func populateTestData(daysBack: Int = 60, deleteFirst: Bool = true) {
         if deleteFirst {

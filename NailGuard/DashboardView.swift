@@ -7,7 +7,13 @@ struct DashboardView: View {
     
     @State private var todayCount: Int = 0
     @State private var weekData: [Int] = Array(repeating: 0, count: 7)
+    @State private var currentDate = Date()
     
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
+        return formatter
+    }()
     private let calendar = Calendar.current
     
     var body: some View {
@@ -37,7 +43,7 @@ struct DashboardView: View {
                 
                 // Today Section
                 VStack(spacing: 12) {
-                    Text("TODAY")
+                    Text("Today: "+dateFormatter.string(from: currentDate))
                         .font(.system(size: 20, weight: .medium))
                         .foregroundColor(Color(red: 170/255, green: 170/255, blue: 170/255))
                     
@@ -54,6 +60,8 @@ struct DashboardView: View {
                     CircularButton(action: {
                             print("Tapped, todayCount: \(todayCount) add 1")
                             PersistenceController.shared.addBite()
+                        /// TEST
+                        //  PhoneSyncManager.shared.sendToWatch("iPhone say hi. Now is " + Date().description)
                         },
                         backgroundColor: .blue, centerColor: Color.pink.opacity(0.7),
                                    frameSize: 200

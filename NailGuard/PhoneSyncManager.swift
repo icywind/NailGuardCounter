@@ -8,12 +8,14 @@
 import WatchConnectivity
 import Foundation
 import SwiftData
+import Combine
 
 @MainActor
 final class PhoneSyncManager: NSObject, WCSessionDelegate {
 
     static let shared = PhoneSyncManager()
-
+    @Published var isWatchConnected = false
+    
     private override init() {
         super.init()
         activate()
@@ -29,21 +31,43 @@ final class PhoneSyncManager: NSObject, WCSessionDelegate {
     // MARK: - Incoming Messages from Watch
 
     func session(_ session: WCSession,
-                 didReceiveMessage message: [String : Any]) {
+                 didReceiveMessage message: [String : Any],
+                 replyHandler: @escaping ([String : Any]) -> Void) {
 
-        guard
-            let idString = message["id"] as? String,
-            let id = UUID(uuidString: idString),
-            let timestampSeconds = message["timestamp"] as? TimeInterval
-        else {
-            print("⚠️ Invalid payload from Watch:", message)
+        // Handle sync record from watch
+        if let syncData = message["syncRecord"] as? Data {
+            handleSyncRecord(from: syncData, replyHandler: replyHandler)
             return
         }
+    }
 
-        let date = Date(timeIntervalSince1970: timestampSeconds)
-
-        Task { @MainActor in
-            insertBite(id: id, timestamp: date)
+    private func handleSyncRecord(from data: Data, replyHandler: @escaping ([String : Any]) -> Void) {
+        do {
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601  // Must match encoding!
+            
+            let biteEvents = try decoder.decode([BiteEvent].self, from: data)
+            
+            // Merge the between-sync bites into persistent storage
+            for bite in biteEvents {
+                insertBite(id: bite.id, timestamp: bite.timestamp)
+            }
+            
+            // Get updated today's count
+            Task {
+                let todayCount = await getTodayBiteCount()
+                
+                replyHandler([
+                    "success": true,
+                    "todayCount": todayCount
+                ])
+            }
+        } catch {
+            print("❌ Failed to decode sync record:", error)
+            replyHandler([
+                "success": false,
+                "error": error.localizedDescription
+            ])
         }
     }
 
@@ -63,6 +87,29 @@ final class PhoneSyncManager: NSObject, WCSessionDelegate {
         }
     }
 
+    // MARK: - Today's Bite Count
+
+    private func getTodayBiteCount() async -> Int {
+        let bites = PersistenceController.shared.getTodayBites()
+        return bites.count
+    }
+    
+    // MARK: - Sync
+
+    // Send to watch
+    func sendToWatch(_ text: String) {
+        let session = WCSession.default
+        guard session.activationState == .activated else { return }
+        
+        if session.isReachable {
+            // Immediate delivery
+            session.sendMessage(["text": text], replyHandler: nil)
+        } else {
+            // Guaranteed delivery
+            session.transferUserInfo(["text": text, "timestamp": Date()])
+        }
+    }
+
     // MARK: - Required stubs (Xcode 26+)
 
     func session(_ session: WCSession,
@@ -75,7 +122,11 @@ final class PhoneSyncManager: NSObject, WCSessionDelegate {
         }
     }
 
-    func sessionDidBecomeInactive(_ session: WCSession) {}
+    func sessionDidBecomeInactive(_ session: WCSession) {
+        DispatchQueue.main.async {
+            self.isWatchConnected = false
+        }
+    }
     func sessionDidDeactivate(_ session: WCSession) {
         WCSession.default.activate()
     }

@@ -9,8 +9,8 @@ import SwiftUI
 import WatchKit
 
 struct WatchHomeView: View {
-    @State private var todayCount = 0
     @State private var currentDate = Date()
+    @StateObject private var viewModel = SyncViewModel()
     
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -27,17 +27,34 @@ struct WatchHomeView: View {
                     .font(.caption)
                     //.foregroundStyle(.secondary)
 
-                Text("\(todayCount)")
+                Text("\(viewModel.todayCount)")
                     .font(.system(size: 42, weight: .bold))
                 
                 CircularButton(action: logBite,
                                backgroundColor: .blue, centerColor: .red, frameSize: 100)
+                
+                // Debug sync button
+                Button(action: {
+                    Task {
+                        await viewModel.performSync()
+                    }
+                }) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 16))
+                        .foregroundColor(.blue)
+                }
+                .padding(.trailing, 10)
+                .padding(.bottom, 10)
+                
                 Spacer()
             }
             .padding()
         }
         .onAppear {
-            WatchSyncManager.shared.flushQueue()
+            // Initialize today's count from synced count
+            Task {
+              await viewModel.performSync()
+            }
             // Update date every minute to handle day changes
             Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
                 currentDate = Date()
@@ -46,16 +63,9 @@ struct WatchHomeView: View {
     }
 
     private func logBite() {
-        let event = BiteEvent(
-            id: UUID(),              // Generate new UUID
-            timestamp: Date()        // Current date/time
-        )
-        WatchSyncManager.shared.send(event)
-        todayCount += 1
+        viewModel.sendBite()
         WKInterfaceDevice.current().play(.success)
     }
-    
-
 }
 
 #Preview("Watch Preview", traits: .defaultLayout) {

@@ -1,12 +1,19 @@
 import WatchConnectivity
 import Foundation
+import Combine
 
 @MainActor
 final class WatchSyncManager: NSObject, WCSessionDelegate {
     static let shared = WatchSyncManager()
-
     private var isActivated = false
-
+    var todayCount = 0
+    var isLoading = false
+    var errorMessage: String?
+    
+    enum SyncStatus {
+        case idle, syncing, success(Int), failed(Error)
+    }
+    
     private override init() {
         super.init()
         activate()
@@ -30,67 +37,97 @@ final class WatchSyncManager: NSObject, WCSessionDelegate {
         if session.activationState == .activated {
             isActivated = true
             print("✅ WCSession already activated")
-            flushQueue()
+            // flushQueue()
         } else {
             session.activate()
             print("➡️ Calling WCSession.activate()")
         }
     }
-
-    func send(_ event: BiteEvent) {
-        guard isActivated else {
-            print("⏳ Session not activated yet — queueing event")
-            WatchStorage.shared.enqueue(event)
-            return
-        }
-
-        let payload: [String: Any] = [
-            "id": event.id.uuidString,
-            "timestamp": event.timestamp.timeIntervalSince1970
-        ]
-
+    func sendBite(_ event: BiteEvent) async throws -> Int {
         let session = WCSession.default
 
+        if !session.isReachable {
+            WatchStorage.shared.enqueue(event)
+            return self.todayCount + 1
+        }
+        
+        let events = [event]
+        return try await sendBiteEventsToPhone(events)
+    }
+    
+    private func sendBiteEventsToPhone(_ events: [BiteEvent]) async throws -> Int {
+        // 1. Encode to Data
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let eventsData = try encoder.encode(events)
+        
+        // 3. Create payload
+        let payload: [String: Any] = [
+            "syncRecord": eventsData
+        ]
+        
+        // 4. Send and get response
+        let session = WCSession.default
+        
         if session.isReachable {
-            session.sendMessage(payload, replyHandler: nil, errorHandler: { error in
-                print("⚠️ sendMessage failed, queueing:", error.localizedDescription)
-                WatchStorage.shared.enqueue(event)
-            })
+            // Use async wrapper for sendMessage
+            let response = try await session.sendMessageAsync(payload)
+            
+            guard let newCount = response["todayCount"] as? Int else {
+                throw WatchSyncError.invalidResponse(response)
+            }
+            
+            // Update synced count in storage
+            WatchStorage.shared.clear()
+            self.todayCount = newCount
+            print("✅ Sync successful, today's count: \(newCount)")
+            
+            return newCount
+            
         } else {
             print("📭 iPhone not reachable — queueing event")
-            WatchStorage.shared.enqueue(event)
+            // Fallback: guaranteed delivery (no immediate response)
+            let transfer = session.transferUserInfo(payload)
+            print("📦 Events queued for guaranteed delivery: \(transfer)")
+            
+            // Return current count since we don't have updated count
+            return self.todayCount
         }
     }
-
-    func flushQueue() {
+    
+   
+    func flushQueue() async throws -> Int {
         guard isActivated else {
             print("⏳ flushQueue called but session not activated")
-            return
+            throw WatchSyncError.sessionNotActivated
         }
 
         let session = WCSession.default
         guard session.isReachable else {
             print("📭 flushQueue aborted — iPhone not reachable")
-            return
+            throw WatchSyncError.sessionNotReachable
         }
 
         let queued = WatchStorage.shared.loadQueue()
         print("🚚 Flushing \(queued.count) queued events")
-
-        for event in queued {
-            let payload: [String: Any] = [
-                "id": event.id.uuidString,
-                "timestamp": event.timestamp.timeIntervalSince1970
-            ]
-
-            session.sendMessage(payload, replyHandler: nil, errorHandler: { error in
-                print("⚠️ Failed to flush event:", error.localizedDescription)
-            })
-        }
-
-        WatchStorage.shared.clear()
+        
+        return try await sendBiteEventsToPhone(queued)
     }
 
+    // MARK: - SYNC
+    
+    // Receive from iPhone
+    func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        DispatchQueue.main.async {
+            if let text = message["text"] as? String {
+                print("Watch received text:\(text)")
+            }
+        }
+        
+        // Auto-reply
+        session.sendMessage(["ack": "received"], replyHandler: nil)
+    }
+    
     // MARK: - WCSessionDelegate
 
     func session(_ session: WCSession,
@@ -106,14 +143,59 @@ final class WatchSyncManager: NSObject, WCSessionDelegate {
 
         if activationState == .activated {
             isActivated = true
-            flushQueue()
+            Task {
+                try await flushQueue()
+            }
         }
     }
 
     func sessionReachabilityDidChange(_ session: WCSession) {
         print("📡 Reachability changed:", session.isReachable)
         if session.isReachable {
-            flushQueue()
+            Task {
+                try await flushQueue()
+            }
+        }
+    }
+}
+extension WCSession {
+    func sendMessageAsync(_ message: [String: Any]) async throws -> [String: Any] {
+        return try await withCheckedThrowingContinuation { continuation in
+            sendMessage(message, replyHandler: { reply in
+                continuation.resume(returning: reply)
+            }, errorHandler: { error in
+                continuation.resume(throwing: error)
+            })
+        }
+    }
+    
+    func sendMessageAsync2(_ message: [String: Any]) async throws {
+        return try await withCheckedThrowingContinuation { continuation in
+            sendMessage(message, replyHandler: { _ in
+                continuation.resume()
+            }, errorHandler: { error in
+                continuation.resume(throwing: error)
+            })
+        }
+    }
+}
+// Error types
+enum WatchSyncError: LocalizedError {
+    case sessionNotActivated
+    case sessionNotReachable
+    case invalidResponse([String: Any])
+    case encodingFailed(Error)
+    
+    var errorDescription: String? {
+        switch self {
+        case .sessionNotActivated:
+            return "Session not activated"
+        case .sessionNotReachable:
+            return "Watch is not reachable"
+        case .invalidResponse(let response):
+            return "Invalid response from watch: \(response)"
+        case .encodingFailed(let error):
+            return "Failed to encode data: \(error.localizedDescription)"
         }
     }
 }
