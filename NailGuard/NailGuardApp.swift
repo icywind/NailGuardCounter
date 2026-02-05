@@ -39,7 +39,7 @@ struct ContentView: View {
                 Label("Settings", systemImage: "gearshape.fill")
             }
         }.onAppear() {
-    PersistenceController.shared.populateTestData(daysBack: 60, deleteFirst: true)
+    // PersistenceController.shared.populateTestData(daysBack: 60, deleteFirst: true)
         }
     }
 }

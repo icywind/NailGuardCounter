@@ -20,6 +20,9 @@ struct SettingsView: View {
                 Button("Clear All Data", role: .destructive) {
                     clearAllData()
                 }
+                Button("Populate Test Data") {
+                    PersistenceController.shared.populateTestData(daysBack: 60, deleteFirst: true)
+                }
             }
             
             Section("About") {

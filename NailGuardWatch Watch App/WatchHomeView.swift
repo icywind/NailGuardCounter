@@ -33,19 +33,6 @@ struct WatchHomeView: View {
                 CircularButton(action: logBite,
                                backgroundColor: .blue, centerColor: .red, frameSize: 100)
                 
-                // Debug sync button
-                Button(action: {
-                    Task {
-                        await viewModel.performSync()
-                    }
-                }) {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .font(.system(size: 16))
-                        .foregroundColor(.blue)
-                }
-                .padding(.trailing, 10)
-                .padding(.bottom, 10)
-                
                 Spacer()
             }
             .padding()
