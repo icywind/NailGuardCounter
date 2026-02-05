@@ -15,6 +15,14 @@ class SyncViewModel: ObservableObject {
     @Published var errorMessage: String?
     
     private let syncManager = WatchSyncManager.shared
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        // Observe syncManager's todayCount changes
+        syncManager.$todayCount
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$todayCount)
+    }
     
     func updateCount() {
         todayCount += 1

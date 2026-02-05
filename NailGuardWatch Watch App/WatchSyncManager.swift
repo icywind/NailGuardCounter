@@ -6,7 +6,7 @@ import Combine
 final class WatchSyncManager: NSObject, WCSessionDelegate {
     static let shared = WatchSyncManager()
     private var isActivated = false
-    var todayCount = 0
+    @Published var todayCount = 0
     var isLoading = false
     var errorMessage: String?
     
@@ -119,6 +119,20 @@ final class WatchSyncManager: NSObject, WCSessionDelegate {
     // Receive from iPhone
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
         DispatchQueue.main.async {
+            // Handle sync request from phone
+            if let action = message["action"] as? String, action == "sync" {
+                print("⌚ Received sync request from phone")
+                Task {
+                    do {
+                        self.todayCount = try await self.flushQueue()
+                        print("✅ Sync completed from phone request")
+                    } catch {
+                        print("❌ Sync failed:", error.localizedDescription)
+                    }
+                }
+                return
+            }
+            
             if let text = message["text"] as? String {
                 print("Watch received text:\(text)")
             }

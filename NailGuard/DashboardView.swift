@@ -32,7 +32,7 @@ struct DashboardView: View {
                     NavigationLink(destination: SettingsView()) {
                         Image(systemName: "gearshape.fill")
                             .font(.system(size: 20))
-                            .foregroundColor(.black)
+                            .foregroundColor(Color(.label)) // System label color
                     }
                 }
                 .padding(.horizontal, 24)
@@ -49,7 +49,7 @@ struct DashboardView: View {
                     
                     Text("\(todayCount)")
                         .font(.system(size: 64, weight: .bold, design: .rounded))
-                        .foregroundColor(.black)
+                        .foregroundColor(Color(.label)) // System label color
                 }
                 
                 Spacer()
@@ -60,8 +60,8 @@ struct DashboardView: View {
                     CircularButton(action: {
                             print("Tapped, todayCount: \(todayCount) add 1")
                             PersistenceController.shared.addBite()
-                        /// TEST
-                        //  PhoneSyncManager.shared.sendToWatch("iPhone say hi. Now is " + Date().description)
+                            // Send sync request to watch
+                            PhoneSyncManager.shared.sendSyncRequest()
                         },
                         backgroundColor: .blue, centerColor: Color.pink.opacity(0.7),
                                    frameSize: 200

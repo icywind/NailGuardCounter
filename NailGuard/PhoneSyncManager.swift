@@ -95,6 +95,19 @@ final class PhoneSyncManager: NSObject, WCSessionDelegate {
     }
     
     // MARK: - Sync
+    
+    // Send sync request to watch
+    func sendSyncRequest() {
+        let session = WCSession.default
+        guard session.activationState == .activated else { return }
+        
+        print("📱 Sending sync request to watch")
+        if session.isReachable {
+            session.sendMessage(["action": "sync"], replyHandler: nil)
+        } else {
+            session.transferUserInfo(["action": "sync", "timestamp": Date()])
+        }
+    }
 
     // Send to watch
     func sendToWatch(_ text: String) {
