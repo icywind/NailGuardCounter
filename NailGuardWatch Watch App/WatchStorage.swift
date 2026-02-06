@@ -14,7 +14,7 @@ final class WatchStorage {
 
     private init() {
         let container = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.nailguard"
+            forSecurityApplicationGroupIdentifier: "group.us.bigtimer.rcsw.NailGuard"
         )!
         fileURL = container.appendingPathComponent("watch_events.json")
     }
