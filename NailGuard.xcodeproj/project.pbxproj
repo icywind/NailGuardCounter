@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3643F9682F328B6C0000D50C /* watch_home.svg in Resources */ = {isa = PBXBuildFile; fileRef = 3643F9662F328B6C0000D50C /* watch_home.svg */; };
-		367C25322F32796500316D63 /* NailGuardWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 367C25122F32796100316D63 /* NailGuardWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		367C25322F32796500316D63 /* Nail Timer Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 367C25122F32796100316D63 /* Nail Timer Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		36B237412F329ECB00066B13 /* design.md in Resources */ = {isa = PBXBuildFile; fileRef = 36B237402F329ECB00066B13 /* design.md */; };
 		36B237432F329EDA00066B13 /* DataFlowChart.png in Resources */ = {isa = PBXBuildFile; fileRef = 36B237422F329EDA00066B13 /* DataFlowChart.png */; };
 /* End PBXBuildFile section */
@@ -58,7 +58,7 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
 			dstSubfolderSpec = 16;
 			files = (
-				367C25322F32796500316D63 /* NailGuardWatch Watch App.app in Embed Watch Content */,
+				367C25322F32796500316D63 /* Nail Timer Watch App.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -67,10 +67,10 @@
 
 /* Begin PBXFileReference section */
 		3643F9662F328B6C0000D50C /* watch_home.svg */ = {isa = PBXFileReference; lastKnownFileType = text; path = watch_home.svg; sourceTree = "<group>"; };
-		367C24E42F32790100316D63 /* NailGuard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NailGuard.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		367C24E42F32790100316D63 /* Nail Timer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Nail Timer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		367C24F12F32790300316D63 /* NailGuardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NailGuardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		367C24FB2F32790300316D63 /* NailGuardUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NailGuardUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		367C25122F32796100316D63 /* NailGuardWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NailGuardWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		367C25122F32796100316D63 /* Nail Timer Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Nail Timer Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		367C251E2F32796500316D63 /* NailGuardWatch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "NailGuardWatch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		367C25282F32796500316D63 /* NailGuardWatch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "NailGuardWatch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		36B237402F329ECB00066B13 /* design.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = design.md; sourceTree = "<group>"; };
@@ -197,10 +197,10 @@
 		367C24E52F32790100316D63 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				367C24E42F32790100316D63 /* NailGuard.app */,
+				367C24E42F32790100316D63 /* Nail Timer.app */,
 				367C24F12F32790300316D63 /* NailGuardTests.xctest */,
 				367C24FB2F32790300316D63 /* NailGuardUITests.xctest */,
-				367C25122F32796100316D63 /* NailGuardWatch Watch App.app */,
+				367C25122F32796100316D63 /* Nail Timer Watch App.app */,
 				367C251E2F32796500316D63 /* NailGuardWatch Watch AppTests.xctest */,
 				367C25282F32796500316D63 /* NailGuardWatch Watch AppUITests.xctest */,
 			);
@@ -231,7 +231,7 @@
 			packageProductDependencies = (
 			);
 			productName = NailGuard;
-			productReference = 367C24E42F32790100316D63 /* NailGuard.app */;
+			productReference = 367C24E42F32790100316D63 /* Nail Timer.app */;
 			productType = "com.apple.product-type.application";
 		};
 		367C24F02F32790300316D63 /* NailGuardTests */ = {
@@ -299,7 +299,7 @@
 			packageProductDependencies = (
 			);
 			productName = "NailGuardWatch Watch App";
-			productReference = 367C25122F32796100316D63 /* NailGuardWatch Watch App.app */;
+			productReference = 367C25122F32796100316D63 /* Nail Timer Watch App.app */;
 			productType = "com.apple.product-type.application";
 		};
 		367C251D2F32796500316D63 /* NailGuardWatch Watch AppTests */ = {
@@ -674,7 +674,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = us.bigtimer.rcsw.NailGuard;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Nail Timer";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -710,7 +710,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = us.bigtimer.rcsw.NailGuard;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Nail Timer";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -828,7 +828,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = us.bigtimer.rcsw.NailGuard.watch;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Nail Timer Watch App";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -865,7 +865,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = us.bigtimer.rcsw.NailGuard.watch;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Nail Timer Watch App";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
