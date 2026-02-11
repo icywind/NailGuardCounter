@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "367C24E32F32790100316D63"
-               BuildableName = "NailGuard.app"
+               BuildableName = "Nail Timer.app"
                BlueprintName = "NailGuard"
                ReferencedContainer = "container:NailGuard.xcodeproj">
             </BuildableReference>
@@ -69,7 +69,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "367C24E32F32790100316D63"
-            BuildableName = "NailGuard.app"
+            BuildableName = "Nail Timer.app"
             BlueprintName = "NailGuard"
             ReferencedContainer = "container:NailGuard.xcodeproj">
          </BuildableReference>
@@ -86,7 +86,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "367C24E32F32790100316D63"
-            BuildableName = "NailGuard.app"
+            BuildableName = "Nail Timer.app"
             BlueprintName = "NailGuard"
             ReferencedContainer = "container:NailGuard.xcodeproj">
          </BuildableReference>
