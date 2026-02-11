@@ -1,14 +1,24 @@
 
 
 # NailGuard
-<p align="center">
-  <img src="NailGuard/Assets.xcassets/AppIcon.appiconset/1024.png" alt="NailGuard App Icon" width="200" height="200">
+<p align="Left">
+  <img src="NailGuard/Assets.xcassets/AppIcon.appiconset/1024.png" alt="NailGuard App Icon" width="100" height="100">
 </p>
-A bite tracking iOS and watchOS app built with SwiftUI, SwiftData, and WatchConnectivity.
+A bite tracking iOS and watchOS app built with SwiftUI, SwiftData, and WatchConnectivity. 
+<br><br>
+
+  "Whenever you feel you want to bite your nails, just tap the button on your watch or phone, and NailGuard will record the time and date.  You can view your progress on both your watch and phone.  The iPhone app provides more detailed analytics and settings."
 
 ## Overview
 
-NailGuard helps you track nail biting habits across your iPhone and Apple Watch. The app provides:
+NailGuard helps you track nail biting habits across your iPhone and Apple Watch. 
+<p align="Left">
+  <img src="Docs/ScreenShots.png" alt="NailGuard App Screenshots" style="max-width:80%; height:auto;">
+</p>
+
+The app provides:
+
+
 
 - **Real-time tracking** - Log bites from your Apple Watch with a single tap
 - **Dashboard** - View today's count and weekly trends
